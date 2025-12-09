@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>みんなの表彰状</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- ヘッダー -->
+    <header>
+      <h1>🏆 みんなの表彰状</h1>
+      <p class="subtitle">みんなで褒め合おう！</p>
+    </header>
+
+    <!-- メインメニュー -->
+    <main id="main-menu">
+      <div class="menu-buttons">
+        <button id="btn-create" class="menu-btn">📝 表彰状をつくる</button>
+        <button id="btn-exchange" class="menu-btn">🔄 交換する</button>
+        <button id="btn-collection" class="menu-btn">📚 コレクション</button>
+      </div>
+    </main>
+
+    <!-- 表彰状作成画面 -->
+    <section id="create-screen" class="screen hidden">
+      <h2>表彰状をつくる</h2>
+      
+      <div class="word-selectors">
+        <div class="selector-group">
+          <label>だれに？</label>
+          <select id="select-who"></select>
+        </div>
+        <div class="selector-group">
+          <label>なにを？</label>
+          <select id="select-what"></select>
+        </div>
+        <div class="selector-group">
+          <label>賞の名前</label>
+          <select id="select-award"></select>
+        </div>
+      </div>
+
+      <button id="btn-shuffle" class="sub-btn">🎲 シャッフル</button>
+
+      <!-- プレビュー -->
+      <div id="certificate-preview" class="certificate">
+        <div class="certificate-inner">
+          <div class="certificate-title">表 彰 状</div>
+          <div class="certificate-content">
+            <span id="preview-who">あなた</span>は<br>
+            <span id="preview-what">毎日がんばっている</span>ので<br>
+            <span id="preview-award">最高で賞</span>を授与します
+          </div>
+          <div class="certificate-date" id="preview-date"></div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button id="btn-save" class="action-btn">💾 保存する</button>
+        <button id="btn-share" class="action-btn">🔄 交換に出す</button>
+      </div>
+
+      <button id="btn-back-create" class="back-btn">← もどる</button>
+    </section>
+
+    <!-- 交換画面 -->
+    <section id="exchange-screen" class="screen hidden">
+      <h2>表彰状を交換する</h2>
+      <p>だれかが作った表彰状をランダムで受け取れるよ！</p>
+      
+      <button id="btn-receive" class="menu-btn">🎁 受け取る</button>
+
+      <div id="received-certificate" class="certificate hidden">
+        <div class="certificate-inner">
+          <div class="certificate-title">表 彰 状</div>
+          <div class="certificate-content" id="received-content"></div>
+          <div class="certificate-date" id="received-date"></div>
+        </div>
+      </div>
+
+      <button id="btn-back-exchange" class="back-btn">← もどる</button>
+    </section>
+
+    <!-- コレクション画面 -->
+    <section id="collection-screen" class="screen hidden">
+      <h2>📚 コレクション</h2>
+      <div id="collection-tabs">
+        <button class="tab-btn active" data-tab="created">作った表彰状</button>
+        <button class="tab-btn" data-tab="received">もらった表彰状</button>
+      </div>
+      <div id="collection-list"></div>
+      <button id="btn-back-collection" class="back-btn">← もどる</button>
+    </section>
+
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

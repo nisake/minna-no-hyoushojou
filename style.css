@@ -1,0 +1,300 @@
+/* 基本スタイル */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* ヘッダー */
+header {
+  text-align: center;
+  color: white;
+  margin-bottom: 30px;
+}
+
+header h1 {
+  font-size: 2rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin-top: 5px;
+}
+
+/* メニューボタン */
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.menu-btn {
+  background: white;
+  border: none;
+  padding: 20px;
+  font-size: 1.2rem;
+  border-radius: 15px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.menu-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.menu-btn:active {
+  transform: translateY(0);
+}
+
+/* 画面切り替え */
+.screen {
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.screen h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* セレクター */
+.word-selectors {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.selector-group label {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: bold;
+}
+
+.selector-group select {
+  padding: 12px;
+  font-size: 1rem;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background: #f9f9f9;
+  cursor: pointer;
+}
+
+.selector-group select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+/* 表彰状スタイル */
+.certificate {
+  background: linear-gradient(145deg, #fffef0, #fff8dc);
+  border: 8px double #c9a227;
+  border-radius: 10px;
+  padding: 25px;
+  margin: 20px 0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.certificate-inner {
+  border: 2px solid #c9a227;
+  padding: 20px;
+  text-align: center;
+}
+
+.certificate-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #8b4513;
+  letter-spacing: 0.5em;
+  margin-bottom: 20px;
+}
+
+.certificate-content {
+  font-size: 1.1rem;
+  line-height: 2;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.certificate-content span {
+  font-weight: bold;
+  color: #c9a227;
+}
+
+.certificate-date {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* ボタン類 */
+.sub-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 15px;
+  transition: background 0.2s;
+}
+
+.sub-btn:hover {
+  background: #e0e0e0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.action-btn:first-child {
+  background: #4CAF50;
+  color: white;
+}
+
+.action-btn:last-child {
+  background: #667eea;
+  color: white;
+}
+
+.action-btn:hover {
+  transform: scale(1.02);
+}
+
+.back-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 20px;
+  color: #666;
+  transition: background 0.2s;
+}
+
+.back-btn:hover {
+  background: #f5f5f5;
+}
+
+/* タブ */
+#collection-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #667eea;
+  background: white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: #667eea;
+  color: white;
+}
+
+/* コレクションリスト */
+#collection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+#collection-list .certificate {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+#collection-list .certificate-title {
+  font-size: 1.3rem;
+}
+
+#collection-list .certificate-content {
+  font-size: 0.95rem;
+}
+
+/* 交換画面 */
+#exchange-screen p {
+  text-align: center;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+#exchange-screen .menu-btn {
+  margin-bottom: 20px;
+}
+
+/* スマホ対応 */
+@media (max-width: 480px) {
+  body {
+    padding: 15px;
+  }
+  
+  header h1 {
+    font-size: 1.6rem;
+  }
+  
+  .certificate {
+    padding: 15px;
+  }
+  
+  .certificate-inner {
+    padding: 15px;
+  }
+  
+  .certificate-title {
+    font-size: 1.4rem;
+  }
+}
