@@ -120,6 +120,7 @@ function initEventListeners() {
     showScreen('exchange-screen');
     // 交換画面に来たら受け取り済み表示をリセット
     document.getElementById('received-certificate').classList.add('hidden');
+    resetReceiveButton();
   });
   document.getElementById('btn-collection').addEventListener('click', () => {
     showScreen('collection-screen');
@@ -213,6 +214,22 @@ function getCertificateKey(cert) {
   return `${cert.who}|${cert.what}|${cert.award}`;
 }
 
+// 今日の日付を取得（YYYY-MM-DD形式）
+function getTodayKey() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Firebase用の安全なキーを生成（.#$[]/ は使えない）
+function getSafeKey(cert) {
+  const key = `${cert.who}_${cert.what}_${cert.award}`;
+  // Firebase で使えない文字を置換
+  return key.replace(/[.#$\[\]\/]/g, '_');
+}
+
 // ローカルに保存
 function saveCertificate() {
   if (isProcessing) return;
@@ -245,32 +262,57 @@ function shareCertificate() {
   if (isProcessing) return;
   isProcessing = true;
 
+  const btnShare = document.getElementById('btn-share');
+  btnShare.disabled = true;
+  btnShare.textContent = '🔄 送信中...';
+
+  const todayKey = getTodayKey();
+  const certKey = getSafeKey(currentCertificate);
+  const dbPath = `certificates/${todayKey}/${certKey}`;
+
   const certificate = {
     ...currentCertificate,
-    date: new Date().toISOString(),
-    id: Date.now()
+    date: new Date().toISOString()
   };
 
-  database.ref('certificates').push(certificate)
-    .then(() => {
-      // ローカルにも保存（重複チェック）
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.created) || '[]');
-      const currentKey = getCertificateKey(currentCertificate);
-      const isDuplicate = saved.some(cert => getCertificateKey(cert) === currentKey);
-      
-      if (!isDuplicate) {
-        saved.unshift({ ...certificate, shared: true });
-        localStorage.setItem(STORAGE_KEYS.created, JSON.stringify(saved));
+  // まず同じ組み合わせが今日既にあるか確認
+  database.ref(dbPath).once('value')
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        alert('📝 この組み合わせは今日すでに交換に出されています！\n別の組み合わせを試してみてね');
+        resetShareButton();
+        return;
       }
 
-      alert('🔄 交換に出しました！\n誰かがこの表彰状を受け取るかも！');
-      isProcessing = false;
+      // なければ保存
+      return database.ref(dbPath).set(certificate)
+        .then(() => {
+          // ローカルにも保存（重複チェック）
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.created) || '[]');
+          const currentKey = getCertificateKey(currentCertificate);
+          const isDuplicate = saved.some(cert => getCertificateKey(cert) === currentKey);
+          
+          if (!isDuplicate) {
+            saved.unshift({ ...certificate, shared: true, id: Date.now() });
+            localStorage.setItem(STORAGE_KEYS.created, JSON.stringify(saved));
+          }
+
+          alert('🔄 交換に出しました！\n誰かがこの表彰状を受け取るかも！');
+          resetShareButton();
+        });
     })
     .catch((error) => {
       console.error('Error:', error);
       alert('エラーが発生しました。もう一度試してください。');
-      isProcessing = false;
+      resetShareButton();
     });
+}
+
+function resetShareButton() {
+  const btnShare = document.getElementById('btn-share');
+  btnShare.disabled = false;
+  btnShare.textContent = '🔄 交換に出す';
+  isProcessing = false;
 }
 
 // 表彰状を受け取る
@@ -278,7 +320,6 @@ function receiveCertificate() {
   if (isProcessing) return;
   isProcessing = true;
 
-  // 受け取りボタンを一時的に無効化
   const btnReceive = document.getElementById('btn-receive');
   btnReceive.disabled = true;
   btnReceive.textContent = '🔄 取得中...';
@@ -292,10 +333,26 @@ function receiveCertificate() {
         return;
       }
 
+      // 全ての表彰状を配列に変換
+      const allCertificates = [];
+      Object.keys(data).forEach(dateKey => {
+        const dateCerts = data[dateKey];
+        Object.keys(dateCerts).forEach(certKey => {
+          allCertificates.push({
+            ...dateCerts[certKey],
+            dateKey: dateKey
+          });
+        });
+      });
+
+      if (allCertificates.length === 0) {
+        alert('まだ交換に出された表彰状がありません。\n最初の一人になってみませんか？');
+        resetReceiveButton();
+        return;
+      }
+
       // ランダムに1つ選ぶ
-      const keys = Object.keys(data);
-      const randomKey = keys[Math.floor(Math.random() * keys.length)];
-      const certificate = data[randomKey];
+      const certificate = allCertificates[Math.floor(Math.random() * allCertificates.length)];
 
       // 表示
       const contentEl = document.getElementById('received-content');
