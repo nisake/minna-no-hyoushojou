@@ -312,10 +312,10 @@ function receiveCertificate() {
       // 表示
       const contentEl = document.getElementById('received-content');
       contentEl.innerHTML = `
-        <span>${certificate.who}</span>は<br>
-        <span>${certificate.what}</span>ので<br>
-        <span>${certificate.award}</span>を授与します
-      `;
+  		<span>${certificate.who}</span>は<br>
+  		<span>${certificate.what}</span><span class="no-break">ので</span><br>
+  		<span>${certificate.award}</span><span class="no-break">を授与します</span>
+	  `;
 
       const dateEl = document.getElementById('received-date');
       const date = new Date(certificate.date);
@@ -370,8 +370,8 @@ function loadCollection(type) {
         <div class="certificate-title">表 彰 状</div>
         <div class="certificate-content">
           <span>${cert.who}</span>は<br>
-          <span>${cert.what}</span>ので<br>
-          <span>${cert.award}</span>を授与します
+		  <span>${cert.what}</span><span class="no-break">ので</span><br>
+		  <span>${cert.award}</span><span class="no-break">を授与します</span>
         </div>
         <div class="certificate-date">${formatDate(cert.date)}</div>
       </div>
