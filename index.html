@@ -60,6 +60,7 @@
       <div class="action-buttons">
         <button id="btn-save" class="action-btn">💾 保存する</button>
         <button id="btn-share" class="action-btn">🔄 交換に出す</button>
+        <button id="btn-image" class="action-btn" onclick="saveCertificateAsImage('certificate-preview')">📷 画像を保存</button>
       </div>
 
       <button id="btn-back-create" class="back-btn">← もどる</button>
@@ -79,6 +80,7 @@
           <div class="certificate-date" id="received-date"></div>
         </div>
       </div>
+      <button id="btn-image-received" class="action-btn hidden" onclick="saveCertificateAsImage('received-certificate')">📷 画像を保存</button>
 
       <button id="btn-back-exchange" class="back-btn">← もどる</button>
     </section>
@@ -99,6 +101,7 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="words.js"></script>
   <script src="app.js"></script>
 </body>

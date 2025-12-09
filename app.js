@@ -322,6 +322,7 @@ function receiveCertificate() {
       dateEl.textContent = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
 
       document.getElementById('received-certificate').classList.remove('hidden');
+      document.getElementById('btn-image-received').classList.remove('hidden');
 
       // ローカルに保存
       const received = JSON.parse(localStorage.getItem(STORAGE_KEYS.received) || '[]');
@@ -363,21 +364,24 @@ function loadCollection(type) {
   }
 
   listEl.innerHTML = certificates.map((cert, index) => `
-    <div class="certificate-wrapper">
-      <div class="certificate">
-        <div class="certificate-inner">
-          <div class="certificate-title">表 彰 状</div>
-          <div class="certificate-content">
-            <span>${cert.who}</span>は<br>
-            <span>${cert.what}</span>ので<br>
-            <span>${cert.award}</span>を授与します
-          </div>
-          <div class="certificate-date">${formatDate(cert.date)}</div>
+  <div class="certificate-wrapper">
+    <div class="certificate" id="cert-${type}-${index}">
+      <div class="certificate-inner">
+        <div class="certificate-title">表 彰 状</div>
+        <div class="certificate-content">
+          <span>${cert.who}</span>は<br>
+          <span>${cert.what}</span>ので<br>
+          <span>${cert.award}</span>を授与します
         </div>
+        <div class="certificate-date">${formatDate(cert.date)}</div>
       </div>
+    </div>
+    <div class="cert-buttons">
+      <button class="image-btn" onclick="saveCertificateAsImage('cert-${type}-${index}')">📷 画像</button>
       <button class="delete-btn" onclick="deleteCertificate('${type}', ${index})">🗑️ 削除</button>
     </div>
-  `).join('');
+  </div>
+`).join('');
 }
 
 // 表彰状を削除
@@ -397,4 +401,20 @@ function deleteCertificate(type, index) {
 function formatDate(isoString) {
   const date = new Date(isoString);
   return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+}
+
+// 表彰状を画像として保存
+function saveCertificateAsImage(elementId) {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+
+  html2canvas(element, {
+    backgroundColor: '#fff',
+    scale: 2
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = '表彰状.png';
+    link.href = canvas.toDataURL();
+    link.click();
+  });
 }
