@@ -265,6 +265,29 @@ header h1 {
   font-size: 0.95rem;
 }
 
+/* 表彰状ラッパー */
+.certificate-wrapper {
+  position: relative;
+}
+
+.delete-btn {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.delete-btn:hover {
+  background: #ee5a5a;
+}
+
 /* 交換画面 */
 #exchange-screen p {
   text-align: center;

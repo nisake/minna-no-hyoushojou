@@ -67,6 +67,9 @@ let currentCertificate = {
   award: WORDS.award[0]
 };
 
+// 連続送信防止用
+let isProcessing = false;
+
 // ローカルストレージのキー
 const STORAGE_KEYS = {
   created: 'minna_certificates_created',
@@ -113,7 +116,11 @@ function initSelectors() {
 function initEventListeners() {
   // メニューボタン
   document.getElementById('btn-create').addEventListener('click', () => showScreen('create-screen'));
-  document.getElementById('btn-exchange').addEventListener('click', () => showScreen('exchange-screen'));
+  document.getElementById('btn-exchange').addEventListener('click', () => {
+    showScreen('exchange-screen');
+    // 交換画面に来たら受け取り済み表示をリセット
+    document.getElementById('received-certificate').classList.add('hidden');
+  });
   document.getElementById('btn-collection').addEventListener('click', () => {
     showScreen('collection-screen');
     loadCollection('created');
@@ -201,15 +208,32 @@ function shuffle() {
   updatePreview();
 }
 
+// 表彰状のキー生成（重複チェック用）
+function getCertificateKey(cert) {
+  return `${cert.who}|${cert.what}|${cert.award}`;
+}
+
 // ローカルに保存
 function saveCertificate() {
+  if (isProcessing) return;
+  
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.created) || '[]');
+  
+  // 重複チェック
+  const currentKey = getCertificateKey(currentCertificate);
+  const isDuplicate = saved.some(cert => getCertificateKey(cert) === currentKey);
+  
+  if (isDuplicate) {
+    alert('📝 この組み合わせは既に保存済みです！');
+    return;
+  }
+
   const certificate = {
     ...currentCertificate,
     date: new Date().toISOString(),
     id: Date.now()
   };
 
-  const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.created) || '[]');
   saved.unshift(certificate);
   localStorage.setItem(STORAGE_KEYS.created, JSON.stringify(saved));
 
@@ -218,6 +242,9 @@ function saveCertificate() {
 
 // 交換に出す（Firebaseに送信）
 function shareCertificate() {
+  if (isProcessing) return;
+  isProcessing = true;
+
   const certificate = {
     ...currentCertificate,
     date: new Date().toISOString(),
@@ -226,26 +253,42 @@ function shareCertificate() {
 
   database.ref('certificates').push(certificate)
     .then(() => {
-      // ローカルにも保存
+      // ローカルにも保存（重複チェック）
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.created) || '[]');
-      saved.unshift({ ...certificate, shared: true });
-      localStorage.setItem(STORAGE_KEYS.created, JSON.stringify(saved));
+      const currentKey = getCertificateKey(currentCertificate);
+      const isDuplicate = saved.some(cert => getCertificateKey(cert) === currentKey);
+      
+      if (!isDuplicate) {
+        saved.unshift({ ...certificate, shared: true });
+        localStorage.setItem(STORAGE_KEYS.created, JSON.stringify(saved));
+      }
 
       alert('🔄 交換に出しました！\n誰かがこの表彰状を受け取るかも！');
+      isProcessing = false;
     })
     .catch((error) => {
       console.error('Error:', error);
       alert('エラーが発生しました。もう一度試してください。');
+      isProcessing = false;
     });
 }
 
 // 表彰状を受け取る
 function receiveCertificate() {
+  if (isProcessing) return;
+  isProcessing = true;
+
+  // 受け取りボタンを一時的に無効化
+  const btnReceive = document.getElementById('btn-receive');
+  btnReceive.disabled = true;
+  btnReceive.textContent = '🔄 取得中...';
+
   database.ref('certificates').once('value')
     .then((snapshot) => {
       const data = snapshot.val();
       if (!data) {
         alert('まだ交換に出された表彰状がありません。\n最初の一人になってみませんか？');
+        resetReceiveButton();
         return;
       }
 
@@ -272,14 +315,28 @@ function receiveCertificate() {
       const received = JSON.parse(localStorage.getItem(STORAGE_KEYS.received) || '[]');
       received.unshift({
         ...certificate,
-        receivedAt: new Date().toISOString()
+        receivedAt: new Date().toISOString(),
+        localId: Date.now()
       });
       localStorage.setItem(STORAGE_KEYS.received, JSON.stringify(received));
+
+      // ボタンを「もう一度受け取る」に変更
+      btnReceive.textContent = '🎁 もう一度受け取る';
+      btnReceive.disabled = false;
+      isProcessing = false;
     })
     .catch((error) => {
       console.error('Error:', error);
       alert('エラーが発生しました。もう一度試してください。');
+      resetReceiveButton();
     });
+}
+
+function resetReceiveButton() {
+  const btnReceive = document.getElementById('btn-receive');
+  btnReceive.disabled = false;
+  btnReceive.textContent = '🎁 受け取る';
+  isProcessing = false;
 }
 
 // コレクション読み込み
@@ -293,19 +350,35 @@ function loadCollection(type) {
     return;
   }
 
-  listEl.innerHTML = certificates.map(cert => `
-    <div class="certificate">
-      <div class="certificate-inner">
-        <div class="certificate-title">表 彰 状</div>
-        <div class="certificate-content">
-          <span>${cert.who}</span>は<br>
-          <span>${cert.what}</span>ので<br>
-          <span>${cert.award}</span>を授与します
+  listEl.innerHTML = certificates.map((cert, index) => `
+    <div class="certificate-wrapper">
+      <div class="certificate">
+        <div class="certificate-inner">
+          <div class="certificate-title">表 彰 状</div>
+          <div class="certificate-content">
+            <span>${cert.who}</span>は<br>
+            <span>${cert.what}</span>ので<br>
+            <span>${cert.award}</span>を授与します
+          </div>
+          <div class="certificate-date">${formatDate(cert.date)}</div>
         </div>
-        <div class="certificate-date">${formatDate(cert.date)}</div>
       </div>
+      <button class="delete-btn" onclick="deleteCertificate('${type}', ${index})">🗑️ 削除</button>
     </div>
   `).join('');
+}
+
+// 表彰状を削除
+function deleteCertificate(type, index) {
+  if (!confirm('この表彰状を削除しますか？')) return;
+
+  const key = type === 'created' ? STORAGE_KEYS.created : STORAGE_KEYS.received;
+  const certificates = JSON.parse(localStorage.getItem(key) || '[]');
+  
+  certificates.splice(index, 1);
+  localStorage.setItem(key, JSON.stringify(certificates));
+  
+  loadCollection(type);
 }
 
 // 日付フォーマット
