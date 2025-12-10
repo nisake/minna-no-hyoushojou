@@ -178,11 +178,15 @@ function getTodayKey() {
   return `${year}-${month}-${day}`;
 }
 
-// Firebase用の安全なキーを生成（.#$[]/ は使えない）
-function getSafeKey(cert) {
-  const key = `${cert.who}_${cert.what}_${cert.award}`;
-  // Firebase で使えない文字を置換
-  return key.replace(/[.#$\[\]\/]/g, '_');
+// Firebase用の安全なキーを生成（インデックスベース）
+function getSafeKeyByIndex(whoIdx, whatIdx, awardIdx) {
+  return `${whoIdx}_${whatIdx}_${awardIdx}`;
+}
+
+// 文字列からインデックスを取得
+function getWordIndex(word, category) {
+  const index = WORDS[category].indexOf(word);
+  return index >= 0 ? index : 0;
 }
 
 // ローカルに保存
@@ -221,12 +225,20 @@ function shareCertificate() {
   btnShare.disabled = true;
   btnShare.textContent = '🔄 送信中...';
 
+  // インデックスを取得
+  const whoIndex = getWordIndex(currentCertificate.who, 'who');
+  const whatIndex = getWordIndex(currentCertificate.what, 'what');
+  const awardIndex = getWordIndex(currentCertificate.award, 'award');
+
   const todayKey = getTodayKey();
-  const certKey = getSafeKey(currentCertificate);
+  const certKey = getSafeKeyByIndex(whoIndex, whatIndex, awardIndex);
   const dbPath = `certificates/${todayKey}/${certKey}`;
 
-  const certificate = {
-    ...currentCertificate,
+  // Firebaseにはインデックスのみ保存
+  const certificateData = {
+    whoIndex: whoIndex,
+    whatIndex: whatIndex,
+    awardIndex: awardIndex,
     date: new Date().toISOString()
   };
 
@@ -240,15 +252,15 @@ function shareCertificate() {
       }
 
       // なければ保存
-      return database.ref(dbPath).set(certificate)
+      return database.ref(dbPath).set(certificateData)
         .then(() => {
-          // ローカルにも保存（重複チェック）
+          // ローカルにも保存（重複チェック、文字列で保存）
           const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.created) || '[]');
           const currentKey = getCertificateKey(currentCertificate);
           const isDuplicate = saved.some(cert => getCertificateKey(cert) === currentKey);
           
           if (!isDuplicate) {
-            saved.unshift({ ...certificate, shared: true, id: Date.now() });
+            saved.unshift({ ...currentCertificate, date: new Date().toISOString(), shared: true, id: Date.now() });
             localStorage.setItem(STORAGE_KEYS.created, JSON.stringify(saved));
           }
 
@@ -307,7 +319,15 @@ function receiveCertificate() {
       }
 
       // ランダムに1つ選ぶ
-      const certificate = allCertificates[Math.floor(Math.random() * allCertificates.length)];
+      const certData = allCertificates[Math.floor(Math.random() * allCertificates.length)];
+
+      // インデックスから文字列に変換（範囲外ならデフォルト値）
+      const who = WORDS.who[certData.whoIndex] || WORDS.who[0];
+      const what = WORDS.what[certData.whatIndex] || WORDS.what[0];
+      const award = WORDS.award[certData.awardIndex] || WORDS.award[0];
+
+      // 表示用オブジェクト
+      const certificate = { who, what, award, date: certData.date };
 
       // 表示
       const contentEl = document.getElementById('received-content');
